@@ -66,8 +66,8 @@ deploy_stack() {
 
 # Order
 deploy_stack "monitoring"
-deploy_stack "administration"
-deploy_stack "developpement"
+#deploy_stack "administration"
+#deploy_stack "developpement"
 deploy_stack "production"
 
 echo

@@ -41,7 +41,8 @@ services:
       - espocrm_data:/var/www/html
     networks:
       - infra-net
-
+    entrypoint: >
+      sh -c "chown -R 33:33 /var/www/html && chmod -R 775 /var/www/html && docker-php-entrypoint apache2-foreground"
   vault:
     image: hashicorp/vault:1.14.3
     container_name: vault_dev
