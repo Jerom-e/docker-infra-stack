@@ -1,66 +1,33 @@
-version: "3.8"
+version: '3.1'
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: zabbix_mysql
-    environment:
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbix
-      MYSQL_ROOT_PASSWORD: rootpassword
-    volumes:
-      - zabbix_mysql_data:/var/lib/mysql
-    networks:
-      - infra-net
-
   zabbix-server:
-    image: zabbix/zabbix-server-mysql:latest
-    container_name: zabbix_server
-    depends_on:
-      - mysql
+    image: zabbix/zabbix-server-pgsql:latest
     environment:
-      DB_SERVER_HOST: mysql
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbix
-    volumes:
-      - zabbix_server_data:/var/lib/zabbix
-    networks:
-      - infra-net
+      DB_SERVER_HOST: zabbix-postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
+    depends_on:
+      - zabbix-postgres
+    ports:
+      - "10051:10051"
+
+  zabbix-postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-mysql:latest
-    container_name: zabbix_web
-    depends_on:
-      - zabbix-server
-      - mysql
+    image: zabbix/zabbix-web-nginx-pgsql:latest
     environment:
-      DB_SERVER_HOST: mysql
-      MYSQL_DATABASE: zabbix
-      MYSQL_USER: zabbix
-      MYSQL_PASSWORD: zabbix
+      DB_SERVER_HOST: zabbix-postgres
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix
+      POSTGRES_DB: zabbix
       ZBX_SERVER_HOST: zabbix-server
-      PHP_TZ: "Europe/Paris"
-    ports:
-      - "8080:80"
-    networks:
-      - infra-net
-
-  zabbix-agent:
-    image: zabbix/zabbix-agent:latest
-    container_name: zabbix_agent
     depends_on:
       - zabbix-server
-    environment:
-      ZBX_HOSTNAME: "zabbix-agent"
-      ZBX_SERVER_HOST: "zabbix-server"
-    networks:
-      - infra-net
-
-volumes:
-  zabbix_mysql_data:
-  zabbix_server_data:
-
-networks:
-  infra-net:
-    external: true
+    ports:
+      - "8080:8080"
